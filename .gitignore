@@ -1,0 +1,15 @@
+.DS_Store
+
+# SwiftPM 编译产物
+/.build
+/Packages
+
+# build_app.sh 打包出的 .app
+/build
+
+# Xcode 打开 Package.swift 时生成的个人状态
+xcuserdata/
+DerivedData/
+.swiftpm/configuration/registries.json
+.swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata
+.netrc
