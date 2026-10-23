@@ -14,15 +14,29 @@
 - 在终端里手动修改 `~/.gitconfig` 后，菜单栏会自动同步
 - 可设置登录时自动启动
 
-## 环境要求
+## 下载安装
+
+1. 到 [Releases](https://github.com/QAQDFAFD/GitSwitcher/releases/latest) 下载 `GitSwitcher-<版本>-macOS.zip`，
+   解压后把 `GitSwitcher.app` 拖进「应用程序」文件夹。支持 macOS 13 及以上，Apple 芯片和 Intel 都能用。
+2. 应用没有经过 Apple 公证，第一次打开会被系统拦下。先点「完成」，再到「系统设置 → 隐私与安全性」，
+   在页面下方找到 GitSwitcher，点「仍要打开」。也可以在终端执行下面这条命令后直接打开：
+
+   ```bash
+   xattr -dr com.apple.quarantine /Applications/GitSwitcher.app
+   ```
+
+3. 打开后图标只出现在菜单栏，不会出现在 Dock 里。
+
+## 环境要求（自己编译时）
 
 - macOS 13 或更高
-- Xcode 15+，或命令行工具（Swift 5.9+）
+- Xcode 15+。`build_app.sh` 要同时编译 Apple 芯片和 Intel 版本，需要完整的 Xcode；
+  只用 `swift run` 调试时，命令行工具（Swift 5.9+）就够了
 
 ## 构建与运行
 
 ```bash
-./build_app.sh          # 生成 build/GitSwitcher.app
+./build_app.sh          # 生成 build/GitSwitcher.app 和发布用的 build/GitSwitcher-<版本>-macOS.zip
 open build/GitSwitcher.app
 ```
 
