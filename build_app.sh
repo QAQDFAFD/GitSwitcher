@@ -23,6 +23,8 @@ APP="build/${APP_NAME}.app"
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BIN_DIR/$APP_NAME" "$APP/Contents/MacOS/$APP_NAME"
+# 图标由 Assets/make_icon.swift 生成
+cp Assets/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
 
 # LSUIElement=true：只在菜单栏显示，不占 Dock
 cat > "$APP/Contents/Info.plist" << PLIST
@@ -34,6 +36,7 @@ cat > "$APP/Contents/Info.plist" << PLIST
     <key>CFBundleIdentifier</key><string>${BUNDLE_ID}</string>
     <key>CFBundleName</key><string>${APP_NAME}</string>
     <key>CFBundleDisplayName</key><string>${DISPLAY_NAME}</string>
+    <key>CFBundleIconFile</key><string>AppIcon</string>
     <key>CFBundlePackageType</key><string>APPL</string>
     <key>CFBundleShortVersionString</key><string>${VERSION}</string>
     <key>CFBundleVersion</key><string>1</string>

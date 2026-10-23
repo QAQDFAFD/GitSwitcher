@@ -1,3 +1,5 @@
+<p align="center"><img src="Assets/AppIcon.png" width="160" alt="GitSwitcher 图标"></p>
+
 # GitSwitcher：Mac 菜单栏 Git 账号切换工具
 
 一个原生 SwiftUI 小工具，常驻菜单栏，用来保存多个 Git 身份并一键切换。
@@ -42,6 +44,9 @@ open build/GitSwitcher.app
 
 开发调试也可以直接 `swift run`，或用 Xcode 打开 `Package.swift`。
 「登录时自动启动」只在打包成 .app 后可用。
+
+应用图标由 `Assets/make_icon.swift` 绘制。修改图案后运行 `swift Assets/make_icon.swift`，
+会重新生成 `Assets/AppIcon.png` 和 `Assets/AppIcon.icns`。
 
 ## 发布新版本
 
