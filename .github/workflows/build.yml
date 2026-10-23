@@ -1,0 +1,45 @@
+# 推送到 main：检查能否编译打包
+# 推送 v* 标签：打包后自动创建 Release，并上传 zip
+name: 构建与发布
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+
+permissions:
+  contents: write # 创建 Release 需要写权限
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: 打包
+        run: ./build_app.sh
+        env:
+          # 标签构建时用标签作版本号；main 构建留空，由脚本自己决定
+          VERSION: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
+
+      - name: 检查通用二进制
+        run: lipo -archs build/GitSwitcher.app/Contents/MacOS/GitSwitcher
+
+      - name: 创建 Release
+        if: github.ref_type == 'tag'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          VERSION="${TAG#v}"
+          ZIP="build/GitSwitcher-${VERSION}-macOS.zip"
+          SHA=$(shasum -a 256 "$ZIP" | cut -d' ' -f1)
+          NOTES="$(cat .github/release-notes.md)
+
+          SHA-256：\`${SHA}\`"
+          # --notes 的内容会放在自动生成的更新记录前面
+          gh release create "$TAG" "$ZIP" \
+            --verify-tag \
+            --title "GitSwitcher ${VERSION}" \
+            --notes "$NOTES" \
+            --generate-notes

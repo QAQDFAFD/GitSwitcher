@@ -43,6 +43,20 @@ open build/GitSwitcher.app
 开发调试也可以直接 `swift run`，或用 Xcode 打开 `Package.swift`。
 「登录时自动启动」只在打包成 .app 后可用。
 
+## 发布新版本
+
+推送到 `main` 时，GitHub Actions 会自动检查能否编译打包。发布新版本只需要推送一个 `v` 开头的标签：
+
+```bash
+git tag v1.0.1
+git push origin v1.0.1
+```
+
+Actions 会用标签作为版本号打包，然后自动创建 Release 并上传 zip。Release 说明由
+`.github/release-notes.md` 里的安装步骤，加上自动生成的更新记录组成。
+
+本地运行 `build_app.sh` 时，版本号取最近的 `v*` 标签，也可以用 `VERSION=1.2.0 ./build_app.sh` 指定。
+
 ## 切换时具体改了什么
 
 | 配置项 | 说明 |

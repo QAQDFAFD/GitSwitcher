@@ -6,7 +6,11 @@ cd "$(dirname "$0")"
 APP_NAME="GitSwitcher"
 DISPLAY_NAME="Git 账号切换"
 BUNDLE_ID="com.local.gitswitcher"
-VERSION="1.0.0"
+
+# 版本号：优先用环境变量 VERSION（自动发布时由标签传入），否则取最近的 v* 标签
+VERSION="${VERSION:-$(git describe --tags --match 'v*' --abbrev=0 2>/dev/null || true)}"
+VERSION="${VERSION#v}"
+VERSION="${VERSION:-0.0.0}"
 
 # 同时编译 Apple 芯片和 Intel 版本，合成一个通用二进制（需要安装完整的 Xcode）
 ARCHS=(--arch arm64 --arch x86_64)
