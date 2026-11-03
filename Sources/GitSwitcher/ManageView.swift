@@ -12,20 +12,25 @@ struct ManageView: View {
         NavigationSplitView {
             sidebar
         } detail: {
-            if let id = selection, let binding = store.binding(for: id) {
-                AccountEditor(account: binding)
-                    .id(id) // 切换账号时重置编辑器内部状态
-            } else {
-                VStack(spacing: 10) {
-                    Image(systemName: "person.crop.circle.badge.plus")
-                        .font(.system(size: 40))
-                        .foregroundStyle(.secondary)
-                    Text("在左侧选择一个账号，或点击工具栏的 + 新建")
-                        .foregroundStyle(.secondary)
+            Group {
+                if let id = selection, let binding = store.binding(for: id) {
+                    AccountEditor(account: binding)
+                        .id(id) // 切换账号时重置编辑器内部状态
+                } else {
+                    VStack(spacing: 10) {
+                        Image(systemName: "person.crop.circle.badge.plus")
+                            .font(.system(size: 40))
+                            .foregroundStyle(.secondary)
+                        Text("在左侧选择一个账号，或点击工具栏的 + 新建")
+                            .foregroundStyle(.secondary)
+                    }
                 }
             }
+            // 最小宽度交给分栏设置。写成外层的 .frame(minWidth:) 时，展开侧边栏的动画里
+            // 右侧会被临时撑宽，内容先滑出窗口再跳回原位，看起来就是抖动
+            .navigationSplitViewColumnWidth(min: 440, ideal: 520)
         }
-        .frame(minWidth: 680, minHeight: 440)
+        .frame(minHeight: 440)
         .overlay(alignment: .bottom) { statusBanner }
         .animation(.easeInOut(duration: 0.2), value: store.status)
         .onAppear {
@@ -46,6 +51,7 @@ struct ManageView: View {
         List(selection: $selection) {
             ForEach(store.accounts) { account in
                 AccountRow(account: account, isCurrent: account.id == store.currentAccount?.id)
+                    .background(ListFocusRefuser())
             }
             .onMove { store.move(from: $0, to: $1) }
         }
@@ -58,9 +64,6 @@ struct ManageView: View {
             if !ids.isEmpty {
                 Button("删除", role: .destructive) { store.delete(ids: ids) }
             }
-        }
-        .onDeleteCommand {
-            if let selection { store.delete(ids: [selection]) }
         }
         .navigationSplitViewColumnWidth(min: 220, ideal: 240)
         .toolbar {
@@ -140,6 +143,25 @@ struct AccountRow: View {
     }
 }
 
+/// 让账号列表不接收键盘焦点。列表有焦点时系统会把选中行画成蓝底，绿勾在蓝底上看不清；
+/// 没有焦点时选中行一直是灰底。代价是列表不响应 Delete 键和方向键，删除走右键菜单
+private struct ListFocusRefuser: NSViewRepresentable {
+    func makeNSView(context: Context) -> NSView { Probe() }
+    func updateNSView(_ nsView: NSView, context: Context) {}
+
+    /// SwiftUI 的 List 底层是 NSTableView，行视图加进窗口后顺着父视图找到它
+    private final class Probe: NSView {
+        override func viewDidMoveToWindow() {
+            super.viewDidMoveToWindow()
+            var view = superview
+            while let current = view, !(current is NSTableView) {
+                view = current.superview
+            }
+            (view as? NSTableView)?.refusesFirstResponder = true
+        }
+    }
+}
+
 // MARK: - 编辑器
 
 @MainActor
@@ -149,7 +171,6 @@ struct AccountEditor: View {
     @State private var sshFeedback: SSHTester.Outcome?
     @State private var testing = false
 
-    private var isCurrent: Bool { store.currentAccount?.id == account.id }
     private var hasKey: Bool { !account.sshKeyPath.trimmed.isEmpty }
 
     var body: some View {
@@ -194,16 +215,17 @@ struct AccountEditor: View {
             }
 
             Section {
-                HStack {
-                    Button(isCurrent ? "重新设为全局账号" : "设为全局账号") {
+                LabeledContent("应用账号") {
+                    // 点按钮本身设为全局账号，点右侧箭头才出现「应用到仓库…」
+                    Menu("设为全局账号") {
+                        Button("应用到仓库…", action: pickRepository)
+                    } primaryAction: {
                         store.switchGlobal(to: account)
                     }
-                    .buttonStyle(.borderedProminent)
-
-                    Button("应用到仓库…", action: pickRepository)
+                    .fixedSize()
                 }
             } footer: {
-                Text("「应用到仓库」只写入所选仓库的 .git/config，只对该仓库生效，优先级高于全局账号。")
+                Text("「设为全局账号」写入 ~/.gitconfig，对所有仓库生效。只想让某个仓库使用这个账号时，点按钮右侧的箭头选择「应用到仓库…」，只写入该仓库的 .git/config，优先级高于全局账号。")
                     .foregroundStyle(.secondary)
             }
         }
